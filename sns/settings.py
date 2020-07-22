@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'coreapp.apps.CoreappConfig',
     'api_user.apps.ApiUserConfig',
     'api_dm.apps.ApiDmConfig',
+    'api_tweet.apps.ApiTweetConfig',
 ]
 
 MIDDLEWARE = [

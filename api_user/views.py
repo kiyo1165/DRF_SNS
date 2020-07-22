@@ -2,10 +2,11 @@ from django.shortcuts import render
 from rest_framework import generics, authentication, permissions
 from api_user import serializers
 from coreapp.models import Profile, User
+from coreapp import ownpermissions
 
 from django.db.models import Q
 from rest_framework import viewsets
-from rest_fremawork.authentication import TokenAuthentication
+from rest_framework.authentication import TokenAuthentication
 from django.db import IntegrityError
 from rest_framework.exceptions import ValidationError
 
@@ -24,7 +25,7 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
     serializer_class = serializers.UserSerializer
 
     #tokenをもとにした認証に使用
-    authentication_classes = （authentication.TokenAuthentication,）
+    authentication_classes = (authentication.TokenAuthentication,)
 
     #ログインしたuserのみ利用できるようにする。
     permission_classes = (permissions.IsAuthenticated,)
@@ -46,17 +47,18 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     #認証
     #tokenをもとにした認証に使用
-    authentication_classes = （authentication.TokenAuthentication,）
+    authentication_classes = (authentication.TokenAuthentication,)
 
     #ログインしたuserのみ利用できるようにする。
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated,ownpermissions.ProfilePermission, )
 
     #プロフィールを取得するアクション
     # 友達リストに登録されているプロフィールを取得
     def get_queryset(self):
         try:
-            is_friend = Profile.objects.get(user=self.request.user)
-        except Profile.DoseNotExitst: #プロフィールがなにもない場合
+            is_friend = Profile.objects.get(userpro=self.request.user)
+        #プロフィールがなにもない場合
+        except Profile.DoesNotExist:
             is_friend = None
 
         friend_filter = Q() #フィルターを作成
@@ -64,7 +66,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
         #フレンド情報からログインをしているユーザーをfriend_filterへ格納している。
         for friend in is_friend.friends.all():
-            friend_filter = friend_filter | Q(user=friend)
+            friend_filter = friend_filter | Q(userpro=friend)
 
         #友達に登録されているかを、filterにかけて戻り値とする。
         return self.queryset.filter(friend_filter)
@@ -73,7 +75,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     # except: IntegrityError:は一人が複数のPFを作成しようとしたときに例外を返している。
     def perform_create(self, serializer):
         try:
-            serializer.save(user=self.request.user)
+            serializer.save(userpro=self.request.user)
         except IntegrityError:
             raise ValidationError("User can have only one own profile")
 

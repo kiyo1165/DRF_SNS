@@ -12,5 +12,5 @@ router.register('profile', views.ProfileViewSet)
 urlpatterns = [
     path('create/', views.CreateUserView.as_view(), name='create'),
     path('myself/', views.ManageUserView.as_view(), name='myself'),
-    path('', include('router.urls'))
+    path('', include(router.urls)),
 ]

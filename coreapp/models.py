@@ -45,8 +45,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Profile(models.Model):
     nickname = models.CharField(max_length=20)
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, related_name = 'user',
+    userpro = models.OneToOneField( #一つのuserに一つのプロフィールを設定する。
+        settings.AUTH_USER_MODEL, related_name='userpro',
         on_delete=models.CASCADE #(CASCADE)大本のUserが削除されるとProfileも削除される
     )
     created_on = models.DateTimeField(auto_now_add=True) #作成日を登録
@@ -54,7 +54,8 @@ class Profile(models.Model):
     #友人だけとDMを打てるようにする。
     #多 対 多の関係を作成している。
     friends = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name='friends' #友人を選択できるようにしている。
+        settings.AUTH_USER_MODEL, related_name='friends',#友人を選択できるようにしている。
+
     )
 
     img = models.ImageField(blank=True, null=True, upload_to=upload_path)
@@ -68,7 +69,7 @@ class Message(models.Model):
 
     # ForeignKey：　one 対 多　の関係を表現している。
     #メッセージを送る側
-    sender = models.ForeignKey(
+    sender = models.ForeignKey( #1対多の関係
         settings.AUTH_USER_MODEL, related_name='sender' ,
         on_delete=models.CASCADE #(CASCADE)大本のUserが削除されるとProfileも削除される
     )
@@ -80,3 +81,22 @@ class Message(models.Model):
 
     def __str__(self):
         return self.message
+
+class Tweet(models.Model):
+
+    text = models.CharField(max_length=140)
+    owner = models.ForeignKey( #一つのuserに一つのプロフィールを設定する。
+        settings.AUTH_USER_MODEL, related_name='owner',
+        on_delete=models.CASCADE
+    )
+
+    def Tweet_by(self):
+        try:
+            temp = Profile.objects.get(userpro=self.owner)
+        except Profile.DoesNotExist:
+            temp = None
+            return
+        return temp.nickname
+
+    def __str__(self):
+        return self.text
